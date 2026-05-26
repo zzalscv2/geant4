@@ -143,6 +143,9 @@ G4UIQt::G4UIQt(G4int argc, char** argv)
     fNewSceneTreeItemTreeWidget(nullptr),
     fMaxPVDepth(0),
     fNewSceneTreeSlider(nullptr),
+    fUnwrapButtonWidget(nullptr),
+    fFadeButtonWidget(nullptr),
+    fXrayButtonWidget(nullptr),
     fViewerPropertiesWidget(nullptr),
     fPickInfosWidget(nullptr),
     fHelpLine(nullptr),
@@ -167,6 +170,7 @@ G4UIQt::G4UIQt(G4int argc, char** argv)
     fZoomOutIcon(nullptr),
     fWireframeIcon(nullptr),
     fSolidIcon(nullptr),
+    fPointCloudIcon(nullptr),
     fHiddenLineRemovalIcon(nullptr),
     fHiddenLineAndSurfaceRemovalIcon(nullptr),
     fPerspectiveIcon(nullptr),
@@ -176,7 +180,9 @@ G4UIQt::G4UIQt(G4int argc, char** argv)
     fRunIcon(nullptr),
     fParamIcon(nullptr),
     fPickTargetIcon(nullptr),
-    fExitIcon(nullptr)
+    fExitIcon(nullptr),
+    fResetCameraIcon(nullptr),
+    fResetTargetPointIcon(nullptr)
 #ifdef G4MULTITHREADED
     ,
     fThreadsFilterComboBox(nullptr)
@@ -251,13 +257,15 @@ G4UIQt::G4UIQt(G4int argc, char** argv)
 #endif
 
   fMainWindow->setWindowTitle(QFileInfo(QCoreApplication::applicationFilePath()).fileName());
-  fMainWindow->move(QPoint(50, 50));
 
   // force the size at be correct at the beggining
   // because the widget is not realized yet, the size of the main window is not up to date. But
   // we need it in order to add some viewer inside
-  fMainWindow->resize(fUIDockWidget->width() + fCoutDockWidget->width() + 20,
-    fUIDockWidget->height() + fCoutDockWidget->height() + 20);
+  int width = QGuiApplication::primaryScreen()->geometry().size().width() * 0.9;
+  int height = QGuiApplication::primaryScreen()->geometry().size().height() * 0.9;
+  fMainWindow->resize(width, height);
+  fMainWindow->move((QGuiApplication::primaryScreen()->geometry().size().width() - width) / 2,
+                    (QGuiApplication::primaryScreen()->geometry().size().height() - height) / 4);
 
   // set last focus on command line
   fCommandArea->setFocus(Qt::TabFocusReason);
@@ -334,10 +342,13 @@ void G4UIQt::SetDefaultIconsToolbar()
     AddIcon("Hidden line and hidden surface removal", "hidden_line_and_surface_removal", "");
     AddIcon("Surfaces", "solid", "");
     AddIcon("Wireframe", "wireframe", "");
+    AddIcon("PointCloud", "point_cloud", "");
 
     // Perspective/Ortho icons
     AddIcon("Perspective", "perspective", "");
     AddIcon("Orthographic", "ortho", "");
+    AddIcon("ResetCamera", "reset_camera", "");
+    AddIcon("Reset target point", "resetTargetPoint", "/vis/viewer/set/targetPoint 0 0 0 m");
     AddIcon("Run beam on", "runBeamOn", "/run/beamOn 1");
     AddIcon("Exit Application", "exit", "exit");
   }
@@ -1455,6 +1466,126 @@ void G4UIQt::CreateIcons()
     "                       "
   };
   fExitIcon= new QPixmap(exitIcon);
+
+  const char * const resetCamera[]={
+    "32 32 3 1",
+    "       c None",
+    ".      c #D5D8D5",
+    "@      c #000000",
+    "                                ",
+    "                                ",
+    "                                ",
+    "   ..........................   ",
+    "   .@@@@@@@@@@@@@@@@@@@@@@@@.   ",
+    "   .@.                    .@.   ",
+    "   .@.                    .@.   ",
+    "   .@.                    .@.   ",
+    "   .@.                    .@.   ",
+    "   .@.    .@@@@@@@@@@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@.      .@.    .@.   ",
+    "   .@.    .@@@@@@@@@@.    .@.   ",
+    "   .@.                    .@.   ",
+    "   .@.                    .@.   ",
+    "   .@.                    .@.   ",
+    "   .@.                    .@.   ",
+    "   .@@@@@@@@@@@@@@@@@@@@@@@@.   ",
+    "   ..........................   ",
+    "                                ",
+    "                                ",
+    "                                "}
+  ;
+  fResetCameraIcon = new QPixmap(resetCamera);
+
+  const char * const resetTargetPointIcon[]={
+    "32 32 3 1",
+    "       c None",
+    ".      c #D5D8D5",
+    "@      c #000000",
+    "                                ",
+    "                                ",
+    "                                ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@.                   ",
+    "          .@@@@@@@@@@@@@@@@@@@@ ",
+    "         .@.................... ",
+    "        .@.                     ",
+    "       .@.                      ",
+    "      .@.                       ",
+    "     .@.                        ",
+    "    .@.                         ",
+    "   .@.                          ",
+    "  .@.                           ",
+    "                                ",
+    "                                "}
+  ;
+  fResetTargetPointIcon = new QPixmap(resetTargetPointIcon);
+
+  const char * const pointCloudIcon[] = {
+  "32 32 2 1 ",
+  "  c None",
+  ". c black",
+  "                                ",
+  "                   ...          ",
+  "               ..   .  ..       ",
+  "           ..    ..             ",
+  "       ..    ..  ..   .   ..    ",
+  "   ..    ..  ..     .   .   .   ",
+  "   . ..  ..         .     . .   ",
+  "     ..               .         ",
+  "                 ..     .       ",
+  "   .         ..  .. .     . .   ",
+  "   .     ..  ..     . .     .   ",
+  "     ..  ..             .       ",
+  "     ..                   .     ",
+  "   .             .. . .     .   ",
+  "   .         ..  .. .   .   .   ",
+  "         ..  ..           . .   ",
+  "     ..  ..           .         ",
+  "   . ..             .   .       ",
+  "   .             .. .     . .   ",
+  "             ..  ..   .     .   ",
+  "         ..  ..         .       ",
+  "   . ..  ..         .     .     ",
+  "   . ..             . .     .   ",
+  "   ..            ..     .   .   ",
+  "       ..    ..  ..       ..    ",
+  "           ....     . .         ",
+  "               ..   .  ..       ",
+  "                   ...          ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                "
+  };
+  fPointCloudIcon = new QPixmap(pointCloudIcon);
+  
 }
 // clang-format on
 
@@ -1524,13 +1655,13 @@ void G4UIQt::CreateNewSceneTreeWidget()
   auto buttonBox = new QWidget();
   auto buttonBoxlayout = new QHBoxLayout();
   buttonBox->setLayout(buttonBoxlayout);
-  auto unwrapButtonWidget = new QRadioButton("Unwrap");
-  unwrapButtonWidget->setChecked(true);  // Initial state
-  auto fadeButtonWidget = new QRadioButton("Fade");
-  auto xrayButtonWidget = new QRadioButton("X-ray");
-  buttonBoxlayout->addWidget(unwrapButtonWidget);
-  buttonBoxlayout->addWidget(fadeButtonWidget);
-  buttonBoxlayout->addWidget(xrayButtonWidget);
+  fUnwrapButtonWidget = new QRadioButton("Unwrap");
+  fUnwrapButtonWidget->setChecked(true);  // Initial state
+  fFadeButtonWidget = new QRadioButton("Fade");
+  fXrayButtonWidget = new QRadioButton("X-ray");
+  buttonBoxlayout->addWidget(fUnwrapButtonWidget);
+  buttonBoxlayout->addWidget(fFadeButtonWidget);
+  buttonBoxlayout->addWidget(fXrayButtonWidget);
   buttonBoxlayout->setContentsMargins(0,0,0,0);
   buttonBox->setLayout(buttonBoxlayout);
   // Layout
@@ -1565,11 +1696,11 @@ void G4UIQt::CreateNewSceneTreeWidget()
           [&]{SliderReleased();});
 
   // Connect the slider buttons
-  connect(unwrapButtonWidget, &QRadioButton::clicked,
+  connect(fUnwrapButtonWidget, &QRadioButton::clicked,
           [&]{SliderRadioButtonClicked(1);});  // Unwrap
-  connect(fadeButtonWidget, &QRadioButton::clicked,
+  connect(fFadeButtonWidget, &QRadioButton::clicked,
           [&]{SliderRadioButtonClicked(2);});  // Fade
-  connect(xrayButtonWidget, &QRadioButton::clicked,
+  connect(fXrayButtonWidget, &QRadioButton::clicked,
           [&]{SliderRadioButtonClicked(3);});  // X-ray
 }
 
@@ -1626,6 +1757,61 @@ void G4UIQt::UpdateSceneTree(const G4SceneTreeItem& root)
   }
 }
 
+
+void G4UIQt::UpdateDrawingStyle(G4int style) {
+  // Surface style
+  switch (style) {
+    case 0:
+      this->SetIconWireframeSelected();
+      break;
+    case 1:
+      this->SetIconHLRSelected();
+      break;
+    case 2:
+      this->SetIconSolidSelected();
+      break;
+    case 3:
+      this->SetIconHLHSRSelected();
+      break;
+    case 4:
+      this->SetIconCoudPointSelected();
+      break;
+    default:
+      return;
+  }
+}
+
+void G4UIQt::UpdateProjectionStyle(G4int style) {
+  if (style == 0.) { // ortho
+    this->SetIconOrthoSelected();
+  } else {
+    this->SetIconPerspectiveSelected();
+  }
+}
+
+void G4UIQt::UpdateTransparencySlider(G4double depth, G4int option) {
+  fNewSceneTreeSlider->blockSignals(true);
+  fNewSceneTreeSlider->setValue(depth * maxInherentSliderValue / fMaxPVDepth);
+  fNewSceneTreeSlider->blockSignals(false);
+  if (option == 1) {
+    fUnwrapButtonWidget->blockSignals(true);
+    fUnwrapButtonWidget->setChecked(true);
+    fUnwrapButtonWidget->blockSignals(false);
+  }
+  else if (option == 2) {
+    fFadeButtonWidget->blockSignals(true);
+    fFadeButtonWidget->setChecked(true);
+    fFadeButtonWidget->blockSignals(false);
+  }
+  else if (option == 3) {
+    fXrayButtonWidget->blockSignals(true);
+    fXrayButtonWidget->setChecked(true);
+    fXrayButtonWidget->blockSignals(false);
+  }
+}
+
+
+
 // Build Physical Volume tree of touchables
 void G4UIQt::BuildPVQTree(const G4SceneTreeItem& g4stItem, QTreeWidgetItem* qtwItem)
 {
@@ -1655,7 +1841,7 @@ void G4UIQt::BuildPVQTree(const G4SceneTreeItem& g4stItem, QTreeWidgetItem* qtwI
       oss.str(""); oss << nameCopyNo <<
       ": Click to make visible and get more information."
       "\n  This may not work if the volume is in the \"base path\". (Hover on"
-      "\n  the model to see base path.) If this is the case,"
+      "\n  G4PhysicalVolumeModel to see base path.) If this is the case,"
       "\n  \"/vis/scene/add/volume " << name << "\" to bring into the displayed tree.)";
       newQTWItem->setToolTip(0, oss.str().c_str());
     } else {  // A fully defined touchable
@@ -1724,27 +1910,14 @@ void G4UIQt::SceneTreeItemClicked(QTreeWidgetItem* item)
         }
         uiMan->ApplyCommand("/vis/set/touchable" + sceneTreeItem->GetPVPath());
         uiMan->ApplyCommand("/vis/touchable/set/visibility " + argument);
-        // If daughters, set daughtersInvisible too
-        if (sceneTreeItem->GetChildren().size() > 0 ) {
-          uiMan->ApplyCommand("/vis/touchable/set/daughtersInvisible " + inverse);
-        }
-        // If not cancelled and if daughters > 0 and if making invisible
-        static G4bool wanted = true;
-        if (wanted && sceneTreeItem->GetChildren().size() > 0 && argument == "false") {
+        static G4bool first = true;
+        if (first && sceneTreeItem->GetChildren().size() > 0 && argument == "false") {
           QMessageBox msgBox;
           msgBox.setText
-          ("This action makes this volume and all descendants invisible."
-           " To see descendants, right-click and select daughtersInvisible/false"
-           " and check visibility of descendants individually. If this gets out"
-           " of hand, \"/vis/viewer/clearVisAttributesModifiers\" and start again.");
-          msgBox.setInformativeText
-          ("To suppress this message click \"Discard\" or \"Don't Save\"");
-          msgBox.setStandardButtons(QMessageBox::Discard | QMessageBox::Ok);
-          msgBox.setDefaultButton(QMessageBox::Ok);
-          auto action = msgBox.exec();
-          if (action == QMessageBox::Discard) {
-            wanted = false;
-          }
+          ("To make all descendants invisible, select, then right-click/daughtersInvisible/true.");
+          msgBox.setStandardButtons(QMessageBox::Ok);
+          msgBox.exec();
+          first = false;
         }
       }
       break;
@@ -2097,7 +2270,7 @@ QWidget* G4UIQt::CreateHelpTBWidget()
   fHelpLine = new QLineEdit();
   helpLayout->addWidget(new QLabel("Search :"));
   helpLayout->addWidget(fHelpLine);
-  connect(fHelpLine, SIGNAL(editingFinished()), this, SLOT(LookForHelpStringCallback()));
+  connect(fHelpLine, SIGNAL(textChanged(const QString&)), this, SLOT(LookForHelpStringCallback()));
 
   // Create Help tree
   FillHelpTree();
@@ -2853,29 +3026,96 @@ void G4UIQt::CreateViewerWidget()
   // Set layouts
 
   // clang-format off
-  SetStartPage(std::string("<table width='100%'><tr><td width='30%'></td><td><div ")+
-                             "style='color: rgb(140, 31, 31); font-size: xx-large; font-family: Garamond, serif; padding-bottom: 0px; font-weight: normal'>Geant4: "+
-                             QApplication::applicationName ().toStdString()+
-                             "</div></td><td width='40%'>&nbsp;<br/><i>http://cern.ch/geant4/</i></td></tr></table>"+
-                             "<p>&nbsp;</p>"+
-                             "<div style='background:#EEEEEE;'><b>Tooltips :</b><ul>"+
-                             "<li><b>Start a new viewer :</b><br />"+
-                             "<i>'/vis/open/...'<br />"+
-                             "For example '/vis/open OGL'</i></li>"+
-                             "<li><b>Execute a macro file :</b><br />"+
-                             "<i>'/control/execute my_macro_file'</i></li>"+
-                             "</ul></div>"+
+  SetStartPage
+  ("<table width='100%'>"
+     "<tr>"
+       "<td width='30%'></td>"
+       "<td>"
+         "<div style='color: rgb(140, 31, 31); font-size: xx-large;"
+         "font-family: Garamond, serif; padding-bottom: 0px; font-weight: normal'>"
+           "Geant4: "+QApplication::applicationName ().toStdString()+
+         "</div>"
+       "</td><td width='40%'>&nbsp;<br/><i>http://cern.ch/geant4/</i></td>"
+     "</tr>"
+   "</table>"
 
-                             "<div style='background:#EEEEEE;'><b>Documentation :</b><ul>"+
-                             "<li><b>Visualisation publication :</b><br />"+
-                             "<i><a href='http://www.worldscientific.com/doi/abs/10.1142/S1793962313400011'>The Geant4 Visualization System - A Multi-Driver Graphics System</b><br />,  Allison, J. et al., International Journal of Modeling, Simulation, and Scientific Computing, Vol. 4, Suppl. 1 (2013) 1340001</a>:<br/> http://www.worldscientific.com/doi/abs/10.1142/S1793962313400011</i></li>"+
-                             "</ul></div>"+
+   "<p>&nbsp;</p>"
 
-                             "<div style='background:#EEEEEE;'><b>Getting Help :</b><ul>"+
-                             "<li><b>If problems arise, try <a href='https://cern.ch/geant4-forum'>browsing the user forum</a> to see whether or not your problem has already been encountered.<br /> If it hasn't, you can post it and Geant4 developers will do their best to find a solution. This is also a good place to<br /> discuss Geant4 topics in general.</b> https://cern.ch/geant4-forum"+
-                             "<li><b>Get a look at <a href='http://cern.ch/geant4/support'>Geant4 User support pages</a>: <i>http://cern.ch/geant4/support</i></b></li>"+
-                             "</ul></div>"
-                             );
+   "<div>"
+     "<table>"
+       "<td>"
+         "<div style='background:#EEEEEE;'>"
+           "<b>Tooltips :</b>"
+           "<ul>"
+             "<li><b>Start a new viewer :</b><br />"
+               "<i>'/vis/open/...', for example '/vis/open OGL'</i>"
+             "</li>"
+             "<li><b>Draw the detector :</b><br />"
+               "<i>'/vis/drawVolume'</i>"
+             "</li>"
+             "<li><b>Execute a macro file :</b><br />"
+               "<i>'/control/execute my_macro_file'</i>"
+             "</li>"
+             "<li><b>Interacting with the viewer :</b><br />"
+               "<i>"
+                 "Different viewers may behave somewhat differently, but the table gives a guide."
+               "</i>"
+             "</li>"
+           "</ul>"
+         "</div>"
+       "</td>"
+       "<td>"
+         "<div style='background:#EEEEEE;'><br><br>"
+           "<table border=\"1\">"
+             "<tr><th>Action</th><th>Mouse actions</th><th>Trackpad actions</th></tr>"
+             "<tr>"
+               "<td>Rotate</td>"
+               "<td>left-button-press move or middle-button-move</td>"
+               "<td>one-finger-press-move or three-finger-move</td>"
+             "</tr>"
+             "<tr><td>Zoom</td><td>right-button-move</td><td>two-finger-move</td></tr>"
+             "<tr><td>Zoom to cursor</td><td>SHIFT-Zoom</td><td>SHIFT-Zoom</td></tr>"
+             "<tr><td>Pan</td><td>SHIFT-Rotate</td><td>SHIFT-Rotate</td></tr>"
+           "</table>"
+         "</div>"
+       "</td>"
+     "</table>"
+   "</div>"
+
+   "<div style='background:#EEEEEE;'>"
+     "<b>Documentation :</b>"
+     "<ul>"
+       "<li><b>Visualisation publication :</b><br />"+
+         "<i>"
+           "<a href='https://doi.org/10.48550/arXiv.1212.6923'>"
+             "The Geant4 Visualisation System - A Multi-Driver Graphics System</b><br />"
+             "Allison, J. et al., International Journal of Modeling, Simulation,"
+             " and Scientific Computing, Vol. 4, Suppl. 1 (2013) 1340001"
+           "</a><br/>http://www.worldscientific.com/doi/abs/10.1142/S1793962313400011"
+         "</i>"
+       "</li>"
+     "</ul>"
+   "</div>"
+
+   "<div style='background:#EEEEEE;'>"
+     "<b>Getting Help :</b>"
+     "<ul>"
+       "<li>"
+         "<b>"
+           "If problems arise, try "
+           "<a href='https://cern.ch/geant4-forum'>"
+             "browsing the user forum"
+           "</a>"
+           "to see whether or not your problem has already been encountered.<br />"
+           "If it hasn't, you can post it and Geant4 developers will do their best to find"
+           " a solution. This is also a good place to<br />"
+           "discuss Geant4 topics in general."
+         "</b>"
+         " https://cern.ch/geant4-forum"
+       "</li>"
+     "</ul>"
+   "</div>"
+   );
   // clang-format on
 
   // fill right splitter
@@ -3640,6 +3880,9 @@ void G4UIQt::AddIcon(
   else if (std::string(aIconFile) == "solid") {
     pix = fSolidIcon;
   }
+  else if (std::string(aIconFile) == "point_cloud") {
+    pix = fPointCloudIcon;
+  }
   else if (std::string(aIconFile) == "hidden_line_removal") {
     pix = fHiddenLineRemovalIcon;
   }
@@ -3657,6 +3900,12 @@ void G4UIQt::AddIcon(
   }
   else if (std::string(aIconFile) == "exit") {
     pix = fExitIcon;
+  }
+  else if (std::string(aIconFile) == "reset_camera") {
+    pix = fResetCameraIcon;
+  }
+  else if (std::string(aIconFile) == "resetTargetPoint") {
+    pix = fResetTargetPointIcon;
   }
   else {
     G4UImanager* UImanager = G4UImanager::GetUIpointer();
@@ -3723,30 +3972,20 @@ void G4UIQt::AddIcon(
     QAction* action = currentToolbar->addAction(
       QIcon(*pix), aIconFile, this, [this, txt]() { this->ChangeCursorAction(txt); });
     action->setCheckable(true);
-    action->setChecked(true);
+    action->setChecked(false);
     action->setData(aIconFile);
 
-    if (std::string(aIconFile) == "move") {
-      SetIconMoveSelected();
-    }
     if (std::string(aIconFile) == "rotate") {
       SetIconRotateSelected();
-    }
-    if (std::string(aIconFile) == "pick") {
-      SetIconPickSelected();
-    }
-    if (std::string(aIconFile) == "zoom_in") {
-      SetIconZoomInSelected();
-    }
-    if (std::string(aIconFile) == "zoom_out") {
-      SetIconZoomOutSelected();
     }
 
     // special case : surface style
   }
   else if ((std::string(aIconFile) == "hidden_line_removal") ||
            (std::string(aIconFile) == "hidden_line_and_surface_removal") ||
-           (std::string(aIconFile) == "solid") || (std::string(aIconFile) == "wireframe"))
+           (std::string(aIconFile) == "solid") || 
+           (std::string(aIconFile) == "wireframe") ||
+           (std::string(aIconFile) == "point_cloud"))
   {
     QString txt = QString(aIconFile);
     QAction* action = currentToolbar->addAction(
@@ -3755,18 +3994,21 @@ void G4UIQt::AddIcon(
     action->setChecked(true);
     action->setData(aIconFile);
 
-    if (std::string(aIconFile) == "hidden_line_removal") {
+    /*if (std::string(aIconFile) == "hidden_line_removal") {
       SetIconHLRSelected();
     }
     if (std::string(aIconFile) == "hidden_line_and_surface_removal") {
       SetIconHLHSRSelected();
-    }
+    }*/
     if (std::string(aIconFile) == "solid") {
       SetIconSolidSelected();
     }
-    if (std::string(aIconFile) == "wireframe") {
+    /*if (std::string(aIconFile) == "wireframe") {
       SetIconWireframeSelected();
     }
+    if (std::string(aIconFile) == "point_cloud") {
+      SetIconWireframeSelected();
+    }*/
 
     // special case : perspective/ortho
   }
@@ -3784,6 +4026,10 @@ void G4UIQt::AddIcon(
     if (std::string(aIconFile) == "ortho") {
       SetIconOrthoSelected();
     }
+    // special cases :"resetCamera"
+  }
+  else if (std::string(aIconFile) == "reset_camera") {
+    currentToolbar->addAction(QIcon(*pix), aIconFile, this, [this]() { this->ResetCameraCallback(); });
   }
   else {
     // Find the command in the command tree
@@ -3807,8 +4053,8 @@ void G4UIQt::AddIcon(
       }
     }
     QString txt = QString(aCommand);
-    currentToolbar->addAction(
-      QIcon(*pix), aCommand, this, [this, txt]() { this->ButtonCallback(txt); });
+    currentToolbar->addAction(QIcon(*pix), aCommand, this,
+                              [this, txt]() { this->ButtonCallback(txt); });
   }
 }
 
@@ -3888,20 +4134,14 @@ void G4UIQt::FillHelpTree()
   QString searchText = fHelpLine->text();
 
   if (searchText == "") {
-    // clear old help tree
-    //    fHelpTreeWidget->clear();
-  }
-  else {
+    fHelpTreeWidget->clear();
+  } else {
     return;
   }
 
   if (fParameterHelpLabel != nullptr) {
     fParameterHelpLabel->setText("Choose a command in the command tree");
     fParameterHelpTable->setVisible(false);
-  }
-
-  if (fHelpLine != nullptr) {
-    fHelpLine->setText("");
   }
 
   G4UImanager* UI = G4UImanager::GetUIpointer();
@@ -4766,7 +5006,7 @@ void G4UIQt::UpdateCommandCompleter()
   G4UIcommandTree* commandTreeTop = UI->GetTree();
   G4UIcommandTree* aTree = commandTreeTop->FindCommandTree("/");
   if (aTree != nullptr) {
-    int Ndir = aTree->GetTreeEntry();
+    G4int Ndir = aTree->GetTreeEntry();
     fCompleter->setMaxVisibleItems(Ndir);
   }
   fCommandArea->setCompleter(fCompleter);
@@ -5275,9 +5515,9 @@ void G4UIQt::FilterAllOutputTextArea()
   }
 }
 
-/**   Callback called when user give a new string to look for<br>
-   Display a list of matching commands descriptions. If no string is set,
-   will display the complete help tree
+/* Callback called when user give a new string to look for
+   Display a list of matching commands. 
+   If no string is set, will display the complete help tree
 */
 void G4UIQt::LookForHelpStringCallback()
 {
@@ -5287,84 +5527,34 @@ void G4UIQt::LookForHelpStringCallback()
   fParameterHelpLabel->setText("");
   fParameterHelpTable->setVisible(false);
   if (searchText == "") {
-    // clear old help tree
-    fHelpTreeWidget->clear();
-
     FillHelpTree();
-
     return;
   }
+
   OpenHelpTreeOnCommand(searchText);
 }
 
+
+
 void G4UIQt::OpenHelpTreeOnCommand(const QString& searchText)
 {
-  // the help tree
+
+  // Get the help tree
   G4UImanager* UI = G4UImanager::GetUIpointer();
   if (UI == nullptr) return;
   G4UIcommandTree* treeTop = UI->GetTree();
 
-  G4int treeSize = treeTop->GetTreeEntry();
-
-  // clear old help tree
+  // Clear old help tree
   fHelpTreeWidget->clear();
 
-  // look for new items
+  // Look for matching commands
+  QMultiMap<G4double, QString> commandResultMap;
+  commandResultMap = LookForHelpStringInChildTree(treeTop, searchText);
 
-  int tmp = 0;
-
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
-  // Before Qt5.15
-  QMap<G4int, QString> commandResultMap;
-  QMap<G4int, QString> commandChildResultMap;
-  for (G4int a = 0; a < treeSize; ++a) {
-    G4UIcommand* command = treeTop->FindPath(treeTop->GetTree(a + 1)->GetPathName().data());
-    tmp = GetCommandList(command).count(searchText, Qt::CaseInsensitive);
-    if (tmp > 0) {
-      commandResultMap.insertMulti(
-        tmp, QString((char*)(treeTop->GetTree(a + 1)->GetPathName()).data()));
-    }
-    // look for childs
-    commandChildResultMap = LookForHelpStringInChildTree(treeTop->GetTree(a + 1), searchText);
-    // insert new childs
-    if (! commandChildResultMap.empty()) {
-      QMap<int, QString>::const_iterator i = commandChildResultMap.constBegin();
-      while (i != commandChildResultMap.constEnd()) {
-        commandResultMap.insertMulti(i.key(), i.value());
-        i++;
-      }
-      commandChildResultMap.clear();
-    }
-  }
-#else
-  // Qt5.15 and beyond
-  QMultiMap<G4int, QString> commandResultMap;
-  QMultiMap<G4int, QString> commandChildResultMap;
-  for (G4int a = 0; a < treeSize; ++a) {
-    G4UIcommand* command = treeTop->FindPath(treeTop->GetTree(a + 1)->GetPathName().data());
-    tmp = (int)GetCommandList(command).count(searchText, Qt::CaseInsensitive);
-    if (tmp > 0) {
-      commandResultMap.insert(tmp, QString((char*)(treeTop->GetTree(a + 1)->GetPathName()).data()));
-    }
-    // look for childs
-    commandChildResultMap = LookForHelpStringInChildTree(treeTop->GetTree(a + 1), searchText);
-    // insert new childs
-    if (! commandChildResultMap.empty()) {
-      auto i = commandChildResultMap.constBegin();
-      while (i != commandChildResultMap.constEnd()) {
-        commandResultMap.insert(i.key(), i.value());
-        ++i;
-      }
-      commandChildResultMap.clear();
-    }
-  }
-#endif
-
-  // build new help tree
+  // Build new help tree
   fHelpTreeWidget->setSelectionMode(QAbstractItemView::SingleSelection);
   fHelpTreeWidget->setColumnCount(2);
-  QStringList labels;
-  labels << QString("Command") << QString("Match");
+  QStringList labels = {"Command", "Match"};
   fHelpTreeWidget->setHeaderLabels(labels);
 
   if (commandResultMap.empty()) {
@@ -5373,122 +5563,101 @@ void G4UIQt::OpenHelpTreeOnCommand(const QString& searchText)
     return;
   }
 
-  auto i = commandResultMap.constEnd();
-  i--;
-  // 10 maximum progress values
-  G4float multValue = 10.0 / (G4float)(i.key());
   QString progressChar = "|";
   QString progressStr = "|";
 
   QTreeWidgetItem* newItem;
-  G4bool end = false;
-  while (! end) {
-    if (i == commandResultMap.constBegin()) {
-      end = true;
-    }
-    for (G4int a = 0; a < G4int(i.key() * multValue); ++a) {
+  G4int nItems = 0;
+ 
+  for (auto it = commandResultMap.end(); it != commandResultMap.begin();) {
+    it--;
+    if (nItems >= 50) break;
+
+    // 20 maximum progress values
+    for (G4int i = 0; i < G4int(it.key() * 10); ++i) {
       progressStr += progressChar;
     }
+
     newItem = new QTreeWidgetItem();
-    QString commandStr = i.value().trimmed();
+    QString commandStr = it.value().trimmed();
 
     if (commandStr.indexOf("/") == 0) {
-      commandStr = commandStr.right(commandStr.size() - 1);
+      commandStr.remove(0, 1);
     }
 
     newItem->setText(0, commandStr);
     newItem->setText(1, progressStr);
     fHelpTreeWidget->addTopLevelItem(newItem);
-    newItem->setForeground(1, QBrush(Qt::blue));
+    if (it.key() > 1) {
+      newItem->setForeground(1, QBrush(Qt::red));
+    } else {
+      newItem->setForeground(1, QBrush(Qt::blue));
+    }
+
     progressStr = "|";
-    i--;
+    ++nItems;
   }
+
   fHelpTreeWidget->resizeColumnToContents(0);
   fHelpTreeWidget->sortItems(1, Qt::DescendingOrder);
-  //  fHelpTreeWidget->setColumnWidth(1,10);//resizeColumnToContents (1);
+
 }
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
-// Before Qt5.15
-QMap<G4int, QString> G4UIQt::LookForHelpStringInChildTree(
-  G4UIcommandTree* aCommandTree, const QString& text)
+
+QMultiMap<G4double, QString> G4UIQt::LookForHelpStringInChildTree(
+  G4UIcommandTree* aCommandTree, const QString& searchText)
 {
-  QMap<G4int, QString> commandResultMap;
-  if (aCommandTree == NULL) return commandResultMap;
-  // Get the Sub directories
-  G4int tmp = 0;
-  QMap<G4int, QString> commandChildResultMap;
-  for (G4int a = 0; a < aCommandTree->GetTreeEntry(); ++a) {
-    const G4UIcommand* command = aCommandTree->GetGuidance();
-    tmp = GetCommandList(command).count(text, Qt::CaseInsensitive);
-    if (tmp > 0) {
-      commandResultMap.insertMulti(
-        tmp, QString((char*)(aCommandTree->GetTree(a + 1)->GetPathName()).data()));
-    }
-    // look for childs
-    commandChildResultMap = LookForHelpStringInChildTree(aCommandTree->GetTree(a + 1), text);
-    if (! commandChildResultMap.empty()) {
-      // insert new childs
-      QMap<G4int, QString>::const_iterator i = commandChildResultMap.constBegin();
-      while (i != commandChildResultMap.constEnd()) {
-        commandResultMap.insertMulti(i.key(), i.value());
-        ++i;
-      }
-      commandChildResultMap.clear();
-    }
-  }
-  // Get the Commands
-  for (G4int a = 0; a < aCommandTree->GetCommandEntry(); ++a) {
-    const G4UIcommand* command = aCommandTree->GetCommand(a + 1);
-    tmp = GetCommandList(command).count(text, Qt::CaseInsensitive);
-    if (tmp > 0) {
-      commandResultMap.insertMulti(
-        tmp, QString((char*)(aCommandTree->GetCommand(a + 1)->GetCommandPath()).data()));
-    }
-  }
-  return commandResultMap;
-}
-#else
-// Qt5.15 and beyond
-QMultiMap<G4int, QString> G4UIQt::LookForHelpStringInChildTree(
-  G4UIcommandTree* aCommandTree, const QString& text)
-{
-  QMultiMap<G4int, QString> commandResultMap;
+  QMultiMap<G4double, QString> commandResultMap;
   if (aCommandTree == nullptr) return commandResultMap;
-  // Get the Sub directories
-  G4int tmp = 0;
-  QMultiMap<G4int, QString> commandChildResultMap;
-  for (G4int a = 0; a < aCommandTree->GetTreeEntry(); ++a) {
-    const G4UIcommand* command = aCommandTree->GetGuidance();
-    tmp = (int)GetCommandList(command).count(text, Qt::CaseInsensitive);
-    if (tmp > 0) {
-      commandResultMap.insert(
-        tmp, QString((char*)(aCommandTree->GetTree(a + 1)->GetPathName()).data()));
-    }
-    // look for childs
-    commandChildResultMap = LookForHelpStringInChildTree(aCommandTree->GetTree(a + 1), text);
-    if (! commandChildResultMap.empty()) {
-      // insert new childs
-      auto i = commandChildResultMap.constBegin();
-      while (i != commandChildResultMap.constEnd()) {
-        commandResultMap.insert(i.key(), i.value());
-        ++i;
-      }
-      commandChildResultMap.clear();
-    }
+
+  // Loop over sub trees
+  QMultiMap<G4double, QString> commandChildResultMap;
+  for (G4int i = 0; i < aCommandTree->GetTreeEntry(); ++i) {
+    commandChildResultMap = LookForHelpStringInChildTree(aCommandTree->GetTree(i + 1), searchText);
+    commandResultMap += commandChildResultMap;
+    commandChildResultMap.clear();
   }
-  // Get the Commands
-  for (G4int a = 0; a < aCommandTree->GetCommandEntry(); ++a) {
-    const G4UIcommand* command = aCommandTree->GetCommand(a + 1);
-    tmp = (int)GetCommandList(command).count(text, Qt::CaseInsensitive);
-    if (tmp > 0) {
-      commandResultMap.insert(
-        tmp, QString((char*)(aCommandTree->GetCommand(a + 1)->GetCommandPath()).data()));
-    }
+
+  // Loop over the commands and compute match score
+  for (G4int i = 0; i < aCommandTree->GetCommandEntry(); ++i) {
+    const G4UIcommand* command = aCommandTree->GetCommand(i + 1);
+    if (command == nullptr) continue;
+    G4double score = ComputeStringMatchScore(QString(command->GetCommandPath().data()), searchText);
+    if (score > 0) commandResultMap.insert(score, QString(command->GetCommandPath().data()));
   }
+
   return commandResultMap;
 }
-#endif
+
+
+G4double G4UIQt::ComputeStringMatchScore(const QString& string, const QString& searchText)
+{
+  if (string.contains(searchText, Qt::CaseInsensitive)) {
+    //Score (1,2] for matched string
+    return 1 + G4double(searchText.size()) / string.size();
+  
+  } else {
+
+    //Score (0,1) for similar string (Normalized Levenshtein distance)
+    const auto nSize = (G4int)string.size();
+    const auto mSize = (G4int)searchText.size();
+
+    QVector<QVector<G4int>> dp(nSize + 1, QVector<G4int>(mSize + 1));
+
+    for (G4int i = 0; i <= nSize; ++i) dp[i][0] = i;
+    for (G4int j = 0; j <= mSize; ++j) dp[0][j] = j;
+
+    for (G4int i = 1; i <= nSize; ++i) {
+      for (G4int j = 1; j <= mSize; ++j) {
+        G4int cost = (string[i - 1] == searchText[j - 1]) ? 0 : 1;
+        dp[i][j] = std::min({dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost});
+      }
+    }
+
+    return 1.0 - G4double(dp[nSize][mSize]) / std::max(nSize, mSize);
+  }
+}
+
 
 QString G4UIQt::GetShortCommandPath(QString& commandPath)
 {
@@ -5559,38 +5728,40 @@ void G4UIQt::ChangeCursorAction(const QString& action)
 {
   // Theses actions should be in the app toolbar
 
+  if (fToolbarApp == nullptr) return;
+ 
+  QList<QAction*> list = fToolbarApp->actions();
+
+  if (action == "pick") {
+    for (auto i : list) {
+      if (i->data().toString() == "pick") {
+        fPickSelected = !fPickSelected;
+        i->setChecked(fPickSelected);
+        if (fPickSelected) {
+          G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/picking true");
+          CreatePickInfosDialog();
+        } else {
+          G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/picking false");
+          if (fPickInfosDialog != nullptr) fPickInfosDialog->hide();
+        }
+      }
+    }
+    return;
+  }
+
   fMoveSelected = true;
-  fPickSelected = true;
   fRotateSelected = true;
   fZoomInSelected = true;
   fZoomOutSelected = true;
 
-  if (fToolbarApp == nullptr) return;
-  QList<QAction*> list = fToolbarApp->actions();
   for (auto i : list) {
     if (i->data().toString() == action) {
       i->setChecked(true);
-      if (i->data().toString() == "pick") {
-        G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/picking true");
-        CreatePickInfosDialog();
-
-        fPickInfosDialog->show();
-        fPickInfosDialog->raise();
-        fPickInfosDialog->activateWindow();
-      }
     }
     else if (i->data().toString() == "move") {
       fMoveSelected = false;
       i->setChecked(false);
-    }
-    else if (i->data().toString() == "pick") {
-      fPickSelected = false;
-      i->setChecked(false);
-      G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/picking false");
-      if (fPickInfosDialog != nullptr) {
-        fPickInfosDialog->hide();
       }
-    }
     else if (i->data().toString() == "rotate") {
       fRotateSelected = false;
       i->setChecked(false);
@@ -5635,8 +5806,10 @@ void G4UIQt::ChangeSurfaceStyle(const QString& action)
     else if (i->data().toString() == "wireframe") {
       i->setChecked(false);
     }
+    else if (i->data().toString() == "point_cloud") {
+      i->setChecked(false);
+    }
   }
-  // FIXME : Should connect this to Vis
 
   if (action == "hidden_line_removal") {
     G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/style w");
@@ -5652,6 +5825,10 @@ void G4UIQt::ChangeSurfaceStyle(const QString& action)
   }
   else if (action == "wireframe") {
     G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/style w");
+    G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/hiddenEdge 0");
+  }
+  else if (action == "point_cloud") {
+    G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/style c");
     G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/set/hiddenEdge 0");
   }
 }
@@ -5810,12 +5987,15 @@ void G4UIQt::ChangePerspectiveOrtho(const QString& action)
   }
 }
 
+void G4UIQt::ResetCameraCallback() {
+  G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/resetCameraParameters");
+}
+
 void G4UIQt::SetIconMoveSelected()
 {
   // Theses actions should be in the app toolbar
   fMoveSelected = true;
   fRotateSelected = false;
-  fPickSelected = false;
   fZoomInSelected = false;
   fZoomOutSelected = false;
 
@@ -5826,9 +6006,6 @@ void G4UIQt::SetIconMoveSelected()
       i->setChecked(true);
     }
     else if (i->data().toString() == "rotate") {
-      i->setChecked(false);
-    }
-    else if (i->data().toString() == "pick") {
       i->setChecked(false);
     }
     else if (i->data().toString() == "zoom_in") {
@@ -5845,7 +6022,6 @@ void G4UIQt::SetIconRotateSelected()
   // Theses actions should be in the app toolbar
   fRotateSelected = true;
   fMoveSelected = false;
-  fPickSelected = false;
   fZoomInSelected = false;
   fZoomOutSelected = false;
 
@@ -5858,9 +6034,6 @@ void G4UIQt::SetIconRotateSelected()
     else if (i->data().toString() == "move") {
       i->setChecked(false);
     }
-    else if (i->data().toString() == "pick") {
-      i->setChecked(false);
-    }
     else if (i->data().toString() == "zoom_in") {
       i->setChecked(false);
     }
@@ -5870,14 +6043,10 @@ void G4UIQt::SetIconRotateSelected()
   }
 }
 
-void G4UIQt::SetIconPickSelected()
+void G4UIQt::TogglePickSelection()
 {
   // Theses actions should be in the app toolbar
-  fPickSelected = true;
-  fMoveSelected = false;
-  fRotateSelected = false;
-  fZoomInSelected = false;
-  fZoomOutSelected = false;
+  fPickSelected = !fPickSelected;
 
   QToolBar* toolbar = fToolbarApp;
   if (! fDefaultIcons) {
@@ -5888,22 +6057,10 @@ void G4UIQt::SetIconPickSelected()
   QList<QAction*> list = toolbar->actions();
   for (auto i : list) {
     if (i->data().toString() == "pick") {
-      i->setChecked(true);
+      i->setChecked(fPickSelected);
     }
-    else if (i->data().toString() == "move") {
-      i->setChecked(false);
     }
-    else if (i->data().toString() == "rotate") {
-      i->setChecked(false);
     }
-    else if (i->data().toString() == "zoom_in") {
-      i->setChecked(false);
-    }
-    else if (i->data().toString() == "zoom_out") {
-      i->setChecked(false);
-    }
-  }
-}
 
 void G4UIQt::SetIconZoomInSelected()
 {
@@ -5911,7 +6068,6 @@ void G4UIQt::SetIconZoomInSelected()
   fZoomInSelected = true;
   fMoveSelected = false;
   fRotateSelected = false;
-  fPickSelected = false;
   fZoomOutSelected = false;
 
   QToolBar* toolbar = fToolbarApp;
@@ -5931,9 +6087,6 @@ void G4UIQt::SetIconZoomInSelected()
     else if (i->data().toString() == "rotate") {
       i->setChecked(false);
     }
-    else if (i->data().toString() == "pick") {
-      i->setChecked(false);
-    }
     else if (i->data().toString() == "zoom_out") {
       i->setChecked(false);
     }
@@ -5946,7 +6099,6 @@ void G4UIQt::SetIconZoomOutSelected()
   fZoomOutSelected = true;
   fMoveSelected = false;
   fRotateSelected = false;
-  fPickSelected = false;
   fZoomInSelected = false;
 
   QToolBar* toolbar = fToolbarApp;
@@ -5964,9 +6116,6 @@ void G4UIQt::SetIconZoomOutSelected()
       i->setChecked(false);
     }
     else if (i->data().toString() == "rotate") {
-      i->setChecked(false);
-    }
-    else if (i->data().toString() == "pick") {
       i->setChecked(false);
     }
     else if (i->data().toString() == "zoom_in") {
@@ -5999,6 +6148,9 @@ void G4UIQt::SetIconSolidSelected()
     else if (i->data().toString() == "wireframe") {
       i->setChecked(false);
     }
+    else if (i->data().toString() == "point_cloud") {
+      i->setChecked(false);
+    }
   }
 }
 
@@ -6026,6 +6178,9 @@ void G4UIQt::SetIconWireframeSelected()
     else if (i->data().toString() == "solid") {
       i->setChecked(false);
     }
+    else if (i->data().toString() == "point_cloud") {
+      i->setChecked(false);
+    }
   }
 }
 
@@ -6051,6 +6206,9 @@ void G4UIQt::SetIconHLRSelected()
       i->setChecked(false);
     }
     else if (i->data().toString() == "wireframe") {
+      i->setChecked(false);
+    }
+    else if (i->data().toString() == "point_cloud") {
       i->setChecked(false);
     }
   }
@@ -6081,6 +6239,40 @@ void G4UIQt::SetIconHLHSRSelected()
     else if (i->data().toString() == "wireframe") {
       i->setChecked(false);
     }
+    else if (i->data().toString() == "point_cloud") {
+      i->setChecked(false);
+    }
+  }
+}
+
+void G4UIQt::SetIconCoudPointSelected()
+{
+  // Theses actions should be in the app toolbar
+
+  QToolBar* toolbar = fToolbarApp;
+  if (!fDefaultIcons) {
+    toolbar = fToolbarUser;
+  }
+  if (toolbar == nullptr) return;
+
+  QList<QAction*> list = toolbar->actions();
+  for (auto i : list) {
+    if (i->data().toString() == "point_cloud") {
+      i->setChecked(true);
+    }
+    else if (i->data().toString() == "wireframe") {
+      i->setChecked(false);
+    }
+    else if (i->data().toString() == "hidden_line_removal") {
+      i->setChecked(false);
+    }
+    else if (i->data().toString() == "hidden_line_and_surface_removal") {
+      i->setChecked(false);
+    }
+    else if (i->data().toString() == "solid") {
+      i->setChecked(false);
+    }
+
   }
 }
 

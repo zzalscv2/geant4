@@ -83,20 +83,18 @@ G4ChargeExchange::~G4ChargeExchange()
 G4HadFinalState* G4ChargeExchange::ApplyYourself(
 		 const G4HadProjectile& aTrack, G4Nucleus& targetNucleus)
 {
-  theParticleChange.Clear();
   auto part = aTrack.GetDefinition();
   G4double ekin = aTrack.GetKineticEnergy();
 
   G4int A = targetNucleus.GetA_asInt();
   G4int Z = targetNucleus.GetZ_asInt();
-
+  
   if (ekin <= lowEnergyLimit) {
     return &theParticleChange;
   }
   theParticleChange.SetWeightChange(fXSWeightFactor);
 
   G4int projPDG = part->GetPDGEncoding();
-
   // for hydrogen targets and positive projectile change exchange
   // is not possible on proton, only on deuteron
   if (1 == Z && (211 == projPDG || 321 == projPDG)) { A = 2; } 
@@ -196,14 +194,20 @@ G4HadFinalState* G4ChargeExchange::ApplyYourself(
   // not possible kinematically
   if (!ok) { return &theParticleChange; }
 
-  // tmax = 4*momCMS^2
   G4double e2 = (m0*m0 + mass2*mass2 - mass3*mass3)/(2*m0);
   G4double momentumCMS = std::sqrt(e2*e2 - mass2*mass2);
-  
-  G4double tmax = 4*(momentumCMS*momentumCMS);  
-  G4double t = SampleT(theSecondary, A, tmax);
-  
-  G4double phi  = G4UniformRand()*CLHEP::twopi;
+  G4double tmax = 4*momentumCMS*momentumCMS; 
+
+  // for projectile pion t depends on final state
+  G4double t;
+  if (fXSection->isPion()) {
+    t = fXSection->SampleTforPion(aTrack.GetTotalEnergy(), tmax);
+  }
+  else {
+    t = SampleT(theSecondary, A, tmax);
+  } 
+   
+  G4double phi = G4UniformRand()*CLHEP::twopi;
   G4double cost = 1. - 2.0*t/tmax;
 
   // if cos(theta) negative, there is a numerical problem
@@ -211,7 +215,7 @@ G4HadFinalState* G4ChargeExchange::ApplyYourself(
   // no scattering
   if (std::abs(cost) > 1.0) { cost = 1.0; }
 
-  G4double sint = std::sqrt((1.0-cost)*(1.0+cost));
+  G4double sint = std::sqrt((1.0 - cost)*(1.0 + cost));
 
   if (verboseLevel > 1) {
     G4cout << " t= " << t << " tmax(GeV^2)= " << tmax/(GeV*GeV) 
@@ -298,8 +302,8 @@ G4double G4ChargeExchange::SampleT(const G4ParticleDefinition*,
   }
   G4double q1 = 1.0 - G4Exp(-std::min(bb*tmax, numLimit));
   G4double q2 = 1.0 - G4Exp(-std::min(dd*tmax, numLimit));
-  G4double s1 = q1*aa;
-  G4double s2 = q2*cc;
+  G4double s1 = q1*aa/bb;
+  G4double s2 = q2*cc/dd;
   if ((s1 + s2)*G4UniformRand() < s2) {
     q1 = q2;
     bb = dd;
