@@ -14,7 +14,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-04-patch-01    (13-March-2026)
+ Geant4 version Name: geant4-11-04-ref-06    (30-June-2026)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -197,6 +197,7 @@ Use built-in Birks saturation                      0
 Build CSDA range enabled                           0
 Use cut as a final range enabled                   0
 Enable angular generator interface                 0
+Enable parallel initialisation of physics tables   0
 Max kinetic energy for CSDA tables                 1 GeV
 Max kinetic energy for NIEL computation            0 eV 
 Linear loss limit                                  0.01
@@ -892,12 +893,12 @@ Start closing geometry.
 G4VoxelisationHelper::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   5 kByte
-    Total CPU time elapsed for geometry optimisation: 0.01 seconds
+    Total CPU time elapsed for geometry optimisation: 0 seconds
 
     Voxelisation: top CPU users:
     Percent   Total CPU    System CPU       Memory  Volume
     -------   ----------   ----------     --------  ----------
-     100.00         0.01         0.00            1k HALL
+       0.00         0.00         0.00            1k HALL
        0.00         0.00         0.00            3k TUB1
        0.00         0.00         0.00            0k TUB2
        0.00         0.00         0.00            0k BXD1_2_ENV
@@ -909,7 +910,7 @@ G4VoxelisationHelper::ReportVoxelStats -- Voxel Statistics
     Percent     Memory      Heads    Nodes   Pointers    Total CPU    Volume
     -------   --------     ------   ------   --------   ----------    ----------
       60.85          3k         1       60         60         0.00    TUB1
-      11.91          0k         2        8         18         0.01    HALL
+      11.91          0k         2        8         18         0.00    HALL
        6.24          0k         1        5          5         0.00    TUB2
        5.25          0k         1        4          4         0.00    BXD1_2_ENV
        5.25          0k         1        4          4         0.00    BXD1_3_ENV
@@ -921,7 +922,7 @@ G4VoxelisationHelper::ReportVoxelStats -- Voxel Statistics
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000279s Sys=0.000000s
+  User=0.000000s Real=0.000238s Sys=0.000000s
 
 Region <DefaultRegionForTheWorld> --  -- appears in <HALL> world volume
  This region is in the mass world.
@@ -951,7 +952,7 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000019s Sys=0.000000s
+  User=0.000000s Real=0.000016s Sys=0.000000s
 
 Region <DefaultRegionForTheWorld> --  -- appears in <HALL> world volume
  This region is in the mass world.
@@ -1011,7 +1012,7 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000013s Sys=0.000000s
+  User=0.000000s Real=0.000016s Sys=0.000000s
 
 Region <DefaultRegionForTheWorld> --  -- appears in <HALL> world volume
  This region is in the mass world.
@@ -1041,7 +1042,7 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000048s Sys=0.000000s
+  User=0.000000s Real=0.000041s Sys=0.000000s
 
 Region <DefaultRegionForTheWorld> --  -- appears in <HALL> world volume
  This region is in the mass world.
@@ -1071,7 +1072,7 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000019s Sys=0.000000s
+  User=0.000000s Real=0.000020s Sys=0.000000s
 
 Region <DefaultRegionForTheWorld> --  -- appears in <HALL> world volume
  This region is in the mass world.
@@ -1101,7 +1102,7 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000016s Sys=0.000000s
+  User=0.000000s Real=0.000018s Sys=0.000000s
 
 Region <DefaultRegionForTheWorld> --  -- appears in <HALL> world volume
  This region is in the mass world.
@@ -1131,14 +1132,14 @@ Index : 0     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1
-  User=0.000000s Real=0.000017s Sys=0.000000s
+  User=0.000000s Real=0.000016s Sys=0.000000s
 Graphics systems deleted.
 Visualization Manager deleting...
 G4 kernel has come to Quit state.
 Deleting G4Run (id:7) 
-UserDetectorConstruction deleted 0x24e2180
-UserPhysicsList deleted 0x24e3be0
-UserActionInitialization deleted 0x26a82a0
+UserDetectorConstruction deleted 0x18cb4f0
+UserPhysicsList deleted 0x18ca940
+UserActionInitialization deleted 0x1a910a0
 UserWorkerInitialization deleted 0
 UserWorkerThreadInitialization deleted 0
 UserRunAction deleted.

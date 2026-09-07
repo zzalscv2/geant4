@@ -36,31 +36,36 @@
 #ifndef G4VTWISTSURFACE_HH
 #define G4VTWISTSURFACE_HH
 
-#include <CLHEP/Units/SystemOfUnits.h>
-
-#include "G4VSolid.hh"
-#include "geomdefs.hh"
-
 #include "G4RotationMatrix.hh"
+#include "G4VSolid.hh"
+
+#include "geomdefs.hh"
+#include <CLHEP/Units/SystemOfUnits.h>
 
 #define G4VSURFACENXX 10
 
 /**
  * @brief G4VTwistSurface is a base class for boundary surface of a G4VSolid.
+ * @ingroup geometry_solids_specific
  */
 
 class G4VTwistSurface
 {
   public:
 
-    enum EValidate { kDontValidate = 0, kValidateWithTol = 1, 
-                     kValidateWithoutTol = 2, kUninitialized = 3 };
+    enum EValidate
+    {
+      kDontValidate = 0,
+      kValidateWithTol = 1,
+      kValidateWithoutTol = 2,
+      kUninitialized = 3
+    };
 
     /**
      * Base constructor, given a name.
      *  @param[in] name The surface name.
      */
-    G4VTwistSurface (const G4String& name);
+    G4VTwistSurface(const G4String& name);
 
     /**
      * Constructs a surface, given its parameters.
@@ -75,17 +80,11 @@ class G4VTwistSurface
      *  @param[in] axis0max Maximum in first axis.
      *  @param[in] axis1max Maximum in second axis.
      */
-    G4VTwistSurface (const G4String& name,
-                     const G4RotationMatrix& rot,
-                     const G4ThreeVector&    tlate,
-                           G4int             handedness,
-                     const EAxis             axis0,
-                     const EAxis             axis1,
-                           G4double          axis0min = -kInfinity,
-                           G4double          axis1min = -kInfinity,
-                           G4double          axis0max = kInfinity,
-                           G4double          axis1max = kInfinity);
- 
+    G4VTwistSurface(const G4String& name, const G4RotationMatrix& rot, const G4ThreeVector& tlate,
+                    G4int handedness, const EAxis axis0, const EAxis axis1,
+                    G4double axis0min = -kInfinity, G4double axis1min = -kInfinity,
+                    G4double axis0max = kInfinity, G4double axis1max = kInfinity);
+
     /**
      * Default destructor.
      */
@@ -98,20 +97,17 @@ class G4VTwistSurface
      * it returns -1. If 'me' is on boundary of 'vec', it returns 0.
      *  @returns The z-coordinate of normal vector of me.cross(vec).
      */
-    virtual G4int AmIOnLeftSide(const G4ThreeVector& me, 
-                                const G4ThreeVector& vec, 
-                                      G4bool withTol = true);
+    virtual G4int AmIOnLeftSide(const G4ThreeVector& me, const G4ThreeVector& vec,
+                                G4bool withTol = true);
 
     /**
-     * Returns the distance to the nearest boundary from an arbitrary point 'p' 
+     * Returns the distance to the nearest boundary from an arbitrary point 'p'
      * in local coodinate.
      *  @param[in] areacode Point location code according to axes.
      *  @param[out] xx The returned reference point on boundary.
      *  @param[in] p The arbitrary point in input.
      */
-    virtual G4double DistanceToBoundary(G4int areacode,
-                                        G4ThreeVector& xx,
-                                        const G4ThreeVector& p) ;
+    virtual G4double DistanceToBoundary(G4int areacode, G4ThreeVector& xx, const G4ThreeVector& p);
 
     /**
      * Returns the distance from outside to a boundary from an arbitrary
@@ -120,9 +116,8 @@ class G4VTwistSurface
      *  @param[in] gv The direction vector.
      *  @param[out] gxxbest The returned reference point on boundary.
      */
-    virtual G4double DistanceToIn(const G4ThreeVector& gp,
-                                  const G4ThreeVector& gv,
-                                        G4ThreeVector& gxxbest);
+    virtual G4double DistanceToIn(const G4ThreeVector& gp, const G4ThreeVector& gv,
+                                  G4ThreeVector& gxxbest);
 
     /**
      * Returns the distance from inside to a boundary from an arbitrary
@@ -131,18 +126,16 @@ class G4VTwistSurface
      *  @param[in] gv The direction vector.
      *  @param[out] gxxbest The returned reference point on boundary.
      */
-    virtual G4double  DistanceToOut(const G4ThreeVector& gp,
-                                    const G4ThreeVector& gv,
-                                          G4ThreeVector& gxxbest);
+    virtual G4double DistanceToOut(const G4ThreeVector& gp, const G4ThreeVector& gv,
+                                   G4ThreeVector& gxxbest);
 
     /**
      * Returns the safety distance to a boundary from an arbitrary point 'gp'.
      *  @param[in] gp The arbitrary point.
      *  @param[out] gxxbest The returned reference point on boundary.
      */
-    virtual G4double DistanceTo(const G4ThreeVector& gp,
-                                      G4ThreeVector& gxx);
-      
+    virtual G4double DistanceTo(const G4ThreeVector& gp, G4ThreeVector& gxx);
+
     /**
      * Returns the distance to surface, given point 'gp' and direction 'gv'.
      *  @param[in] gp The point from where computing the distance.
@@ -154,13 +147,9 @@ class G4VTwistSurface
      *  @param[in] validate Adopted validation criteria.
      *  @returns The number of solutions.
      */
-    virtual G4int DistanceToSurface(const G4ThreeVector& gp,
-                                    const G4ThreeVector& gv,
-                                          G4ThreeVector  gxx[],
-                                          G4double       distance[],
-                                          G4int          areacode[],
-                                          G4bool         isvalid[],
-                                    EValidate validate = kValidateWithTol) = 0;
+    virtual G4int DistanceToSurface(const G4ThreeVector& gp, const G4ThreeVector& gv,
+                                    G4ThreeVector gxx[], G4double distance[], G4int areacode[],
+                                    G4bool isvalid[], EValidate validate = kValidateWithTol) = 0;
 
     /**
      * Returns the safety distance to surface, given point 'gp'.
@@ -170,11 +159,9 @@ class G4VTwistSurface
      *  @param[out] areacode The location vector based on number of solutions.
      *  @returns The number of solutions.
      */
-    virtual G4int DistanceToSurface(const G4ThreeVector& gp,
-                                          G4ThreeVector  gxx[],
-                                          G4double       distance[],
-                                          G4int          areacode[]) = 0;
-                                             
+    virtual G4int DistanceToSurface(const G4ThreeVector& gp, G4ThreeVector gxx[],
+                                    G4double distance[], G4int areacode[]) = 0;
+
     /**
      * Returns a normal vector at a surface (or very close to the surface)
      * point at 'p'.
@@ -182,9 +169,8 @@ class G4VTwistSurface
      *  @param[in] isGlobal If true, it returns the normal in global coordinates.
      *  @returns The normal vector.
      */
-    virtual G4ThreeVector GetNormal(const G4ThreeVector& p,
-                                          G4bool isGlobal) = 0;
-   
+    virtual G4ThreeVector GetNormal(const G4ThreeVector& p, G4bool isGlobal) = 0;
+
     /**
      * Returns parameters of boundaries.
      *  @param[in] areacode The location code.
@@ -192,10 +178,8 @@ class G4VTwistSurface
      *  @param[out] x0 The point on boundary.
      *  @param[out] boundarytype The boundary code.
      */
-    virtual void GetBoundaryParameters(const G4int& areacode,
-                                             G4ThreeVector& d,
-                                             G4ThreeVector& x0,
-                                             G4int& boundarytype) const;
+    virtual void GetBoundaryParameters(const G4int& areacode, G4ThreeVector& d, G4ThreeVector& x0,
+                                       G4int& boundarytype) const;
 
     /**
      * Returns Z projection of point 'p' on boundary.
@@ -203,88 +187,75 @@ class G4VTwistSurface
      *  @param[out] p The arbitrary point.
      *  @returns The Z projection on boundary.
      */
-    virtual G4ThreeVector GetBoundaryAtPZ(G4int areacode,
-                                          const G4ThreeVector& p) const;
+    virtual G4ThreeVector GetBoundaryAtPZ(G4int areacode, const G4ThreeVector& p) const;
 
     /**
      * Utility methods to compute the distance from a plane/line.
      */
-    inline G4double DistanceToPlaneWithV(const G4ThreeVector& p,
-                                         const G4ThreeVector& v,
-                                         const G4ThreeVector& x0,
-                                         const G4ThreeVector& n0,
-                                               G4ThreeVector& xx);
-    inline G4double DistanceToPlane(const G4ThreeVector& p,
-                                    const G4ThreeVector& x0,
-                                    const G4ThreeVector& n0,
-                                          G4ThreeVector& xx);
-    inline G4double DistanceToPlane(const G4ThreeVector& p,
-                                    const G4ThreeVector& x0,
-                                    const G4ThreeVector& t1,
-                                    const G4ThreeVector& t2,
-                                          G4ThreeVector& xx,
-                                          G4ThreeVector& n);
-    inline G4double DistanceToLine (const G4ThreeVector& p,
-                                    const G4ThreeVector& x0,
-                                    const G4ThreeVector& d,
-                                          G4ThreeVector& xx);
+    inline G4double DistanceToPlaneWithV(const G4ThreeVector& p, const G4ThreeVector& v,
+                                         const G4ThreeVector& x0, const G4ThreeVector& n0,
+                                         G4ThreeVector& xx);
+    inline G4double DistanceToPlane(const G4ThreeVector& p, const G4ThreeVector& x0,
+                                    const G4ThreeVector& n0, G4ThreeVector& xx);
+    inline G4double DistanceToPlane(const G4ThreeVector& p, const G4ThreeVector& x0,
+                                    const G4ThreeVector& t1, const G4ThreeVector& t2,
+                                    G4ThreeVector& xx, G4ThreeVector& n);
+    inline G4double DistanceToLine(const G4ThreeVector& p, const G4ThreeVector& x0,
+                                   const G4ThreeVector& d, G4ThreeVector& xx);
 
     /**
      * Test functions/accessors, based on 'areacode' location.
      */
-    inline G4bool IsAxis0 (G4int areacode) const;
-    inline G4bool IsAxis1 (G4int areacode) const;
-    inline G4bool IsOutside (G4int areacode) const;
-    inline G4bool IsInside (G4int areacode, G4bool testbitmode = false) const;
-    inline G4bool IsBoundary (G4int areacode, G4bool testbitmode = false) const;
-    inline G4bool IsCorner (G4int areacode, G4bool testbitmode = false) const;
+    inline G4bool IsAxis0(G4int areacode) const;
+    inline G4bool IsAxis1(G4int areacode) const;
+    inline G4bool IsOutside(G4int areacode) const;
+    inline G4bool IsInside(G4int areacode, G4bool testbitmode = false) const;
+    inline G4bool IsBoundary(G4int areacode, G4bool testbitmode = false) const;
+    inline G4bool IsCorner(G4int areacode, G4bool testbitmode = false) const;
     inline G4bool IsValidNorm() const { return fIsValidNorm; }
-    G4bool IsSameBoundary (G4VTwistSurface* surface1, G4int areacode1,
-                           G4VTwistSurface* surface2, G4int areacode2 ) const;
+    G4bool IsSameBoundary(G4VTwistSurface* surface1, G4int areacode1, G4VTwistSurface* surface2,
+                          G4int areacode2) const;
     inline G4int GetAxisType(G4int areacode, G4int whichaxis) const;
 
     /**
      * Utility functions computing global/local point/direction.
      */
-    inline G4ThreeVector ComputeGlobalPoint (const G4ThreeVector& lp) const;
-    inline G4ThreeVector ComputeLocalPoint (const G4ThreeVector& gp) const;
-    inline G4ThreeVector ComputeGlobalDirection (const G4ThreeVector& lp) const;
-    inline G4ThreeVector ComputeLocalDirection (const G4ThreeVector& gp) const;
-  
+    inline G4ThreeVector ComputeGlobalPoint(const G4ThreeVector& lp) const;
+    inline G4ThreeVector ComputeLocalPoint(const G4ThreeVector& gp) const;
+    inline G4ThreeVector ComputeGlobalDirection(const G4ThreeVector& lp) const;
+    inline G4ThreeVector ComputeLocalDirection(const G4ThreeVector& gp) const;
+
     /**
      * Modifiers for axes.
      */
     inline void SetAxis(G4int i, const EAxis axis) { fAxis[i] = axis; }
-    inline void SetNeighbours(G4VTwistSurface* ax0min, G4VTwistSurface* ax1min, 
+    inline void SetNeighbours(G4VTwistSurface* ax0min, G4VTwistSurface* ax1min,
                               G4VTwistSurface* ax0max, G4VTwistSurface* ax1max);
 
     /**
      * Returns point on surface given the axes.
      */
-    virtual G4ThreeVector SurfacePoint(G4double, G4double,
-                                       G4bool isGlobal = false ) = 0 ;
+    virtual G4ThreeVector SurfacePoint(G4double, G4double, G4bool isGlobal = false) = 0;
 
     /**
      * Internal accessors to be implemented in concrete derived classes.
      */
-    virtual G4double GetBoundaryMin(G4double) = 0 ;
-    virtual G4double GetBoundaryMax(G4double) = 0 ;
-    virtual G4double GetSurfaceArea() = 0 ;
-    virtual void GetFacets(G4int m, G4int n, G4double xyz[][3],
-                           G4int faces[][4], G4int iside) = 0 ;
+    virtual G4double GetBoundaryMin(G4double) = 0;
+    virtual G4double GetBoundaryMax(G4double) = 0;
+    virtual G4double GetSurfaceArea() = 0;
+    virtual void GetFacets(G4int m, G4int n, G4double xyz[][3], G4int faces[][4], G4int iside) = 0;
 
     /**
      * Node/face mapping functions.
      */
-    G4int GetNode( G4int i, G4int j, G4int m, G4int n, G4int iside ) ;
-    G4int GetFace( G4int i, G4int j, G4int m, G4int n, G4int iside ) ;
+    G4int GetNode(G4int i, G4int j, G4int m, G4int n, G4int iside);
+    G4int GetFace(G4int i, G4int j, G4int m, G4int n, G4int iside);
 
     /**
      * Checks face visibility, based on verteces and orientation.
      *  @returns -1 if invisible; 1 if visible.
      */
-    G4int GetEdgeVisibility( G4int i, G4int j, G4int m, G4int n,
-                             G4int number, G4int orientation) ;
+    G4int GetEdgeVisibility(G4int i, G4int j, G4int m, G4int n, G4int number, G4int orientation);
 
     /**
      * Returns the surface name.
@@ -304,16 +275,16 @@ class G4VTwistSurface
     G4VTwistSurface(__void__&);
 
   protected:
- 
+
     /**
      * Internal accessors.
      */
-    inline G4VTwistSurface** GetNeighbours() { return fNeighbours; } 
+    inline G4VTwistSurface** GetNeighbours() { return fNeighbours; }
     inline G4int GetNeighbours(G4int areacode, G4VTwistSurface* surfaces[]);
     inline G4ThreeVector GetCorner(G4int areacode) const;
     void GetBoundaryAxis(G4int areacode, EAxis axis[]) const;
     void GetBoundaryLimit(G4int areacode, G4double limit[]) const;
-    virtual G4int GetAreaCode(const G4ThreeVector& xx, G4bool withtol=true) = 0;
+    virtual G4int GetAreaCode(const G4ThreeVector& xx, G4bool withtol = true) = 0;
 
     /**
      * Modifier for boundaries.
@@ -326,10 +297,8 @@ class G4VTwistSurface
      *             start point is fixed at origin; sAxisPhi = part of circle
      *             which center placed at the origin.
      */
-    virtual void SetBoundary(const G4int& axiscode, 
-                             const G4ThreeVector& direction,
-                             const G4ThreeVector& x0, 
-                             const G4int& boundarytype);
+    virtual void SetBoundary(const G4int& axiscode, const G4ThreeVector& direction,
+                             const G4ThreeVector& x0, const G4int& boundarytype);
 
     /**
      * Modifier for corners.
@@ -342,15 +311,15 @@ class G4VTwistSurface
      * Internal setters to be implemented in concrete dereived classes.
      */
     virtual void SetBoundaries() = 0;
-    virtual void SetCorners()    = 0;
-   
-  // data members ---------------------------------------------------------
+    virtual void SetCorners() = 0;
+
+    // data members ---------------------------------------------------------
 
   public:
 
     /** Boundary types. */
-    static const G4int sOutside ;
-    static const G4int sInside  ;
+    static const G4int sOutside;
+    static const G4int sInside;
     static const G4int sBoundary;
     static const G4int sCorner;
     static const G4int sC0Min1Min;
@@ -371,75 +340,26 @@ class G4VTwistSurface
     static const G4int sAreaMask;
 
   protected:
- 
-    class CurrentStatus 
+
+    class Boundary
     {
-      /**
-       * @brief Internal class defining the surface status.
-       */
-      public:
+        /**
+         * @brief Internal class defining a surface boundary type.
+         * @ingroup geometry_solids_specific
+         */
 
-        CurrentStatus();
-        virtual ~CurrentStatus();
-      
-        inline G4ThreeVector GetXX(G4int i) const { return fXX[i]; }
-        inline G4double GetDistance(G4int i) const { return fDistance[i]; }
-        inline G4int GetAreacode(G4int i) const { return fAreacode[i]; }
-        inline G4int GetNXX() const { return fNXX; }
-        inline G4bool IsDone() const { return fDone; }
-        inline G4bool IsValid(G4int i) const { return fIsValid[i]; }
-
-        void SetCurrentStatus(G4int  i, 
-                              G4ThreeVector& xx, 
-                              G4double& dist, 
-                              G4int& areacode, 
-                              G4bool& isvalid,
-                              G4int nxx,
-                              EValidate validate,
-                        const G4ThreeVector* p, 
-                        const G4ThreeVector* v = nullptr);
-
-        void ResetfDone(EValidate validate,
-                  const G4ThreeVector* p, 
-                  const G4ThreeVector* v = nullptr);
-
-
-        void DebugPrint() const;
-
-      private:
-
-        G4double fDistance[G4VSURFACENXX];
-        G4ThreeVector fXX[G4VSURFACENXX];
-        G4int fAreacode[G4VSURFACENXX];
-        G4bool fIsValid[G4VSURFACENXX];
-        G4int fNXX;
-        G4ThreeVector fLastp;
-        G4ThreeVector fLastv;
-        EValidate fLastValidate;
-        G4bool fDone;
-    };
-      
-    class Boundary 
-    {
-      /**
-       * @brief Internal class defining a surface boundary type.
-       */
       public:
 
         Boundary() = default;
         virtual ~Boundary() = default;
-      
-        void SetFields(const G4int& areacode, 
-                       const G4ThreeVector& d, 
-                       const G4ThreeVector& x0, 
+
+        void SetFields(const G4int& areacode, const G4ThreeVector& d, const G4ThreeVector& x0,
                        const G4int& boundarytype);
-      
+
         G4bool IsEmpty() const;
-      
-        G4bool GetBoundaryParameters(const G4int& areacode, 
-                                           G4ThreeVector& d,
-                                           G4ThreeVector& x0, 
-                                           G4int& boundarytype) const;
+
+        G4bool GetBoundaryParameters(const G4int& areacode, G4ThreeVector& d, G4ThreeVector& x0,
+                                     G4int& boundarytype) const;
 
       private:
 
@@ -452,42 +372,19 @@ class G4VTwistSurface
     EAxis fAxis[2];
     G4double fAxisMin[2];
     G4double fAxisMax[2];
-    CurrentStatus fCurStatWithV;
-    CurrentStatus fCurStat;
     G4RotationMatrix fRot;
     G4ThreeVector fTrans;
     G4int fHandedness;
-
-    class G4SurfCurNormal
-    {
-      public:
-
-        G4ThreeVector p;
-        G4ThreeVector normal;
-    };
-
-    G4SurfCurNormal fCurrentNormal;
     G4bool fIsValidNorm;
     G4double kCarTolerance;
 
   private:
-                     
-    G4VTwistSurface* fNeighbours[4]; // {0,1,2,3} = sAxis0min, sAxis1min, 
-                                     //             sAxis0max, sAxis1max
-    G4ThreeVector fCorners[4]; // corners of the surface in local coordinate
-    Boundary fBoundaries[4];   // boundaries of the surface.
-    G4String fName;
-   
-    class G4SurfSideQuery
-    {
-      public:
 
-        G4ThreeVector me;
-        G4ThreeVector vec;
-        G4bool  withTol;
-        G4int amIOnLeftSide;
-    };
-    G4SurfSideQuery fAmIOnLeftSide;
+    G4VTwistSurface* fNeighbours[4];  // {0,1,2,3} = sAxis0min, sAxis1min,
+                                      //             sAxis0max, sAxis1max
+    G4ThreeVector fCorners[4];  // corners of the surface in local coordinate
+    Boundary fBoundaries[4];  // boundaries of the surface.
+    G4String fName;
 };
 
 //========================================================

@@ -35,16 +35,17 @@
 #ifndef G4SCALEDSOLID_HH
 #define G4SCALEDSOLID_HH
 
-#include "G4VSolid.hh"
+#include "G4AffineTransform.hh"
 #include "G4ThreeVector.hh"
 #include "G4Transform3D.hh"
-#include "G4AffineTransform.hh"
+#include "G4VSolid.hh"
 
 class G4ScaleTransform;
 
 /**
  * @brief G4ScaledSolid is a solid that has been scaled in dimensions
  * in X, Y or Z, from its original description.
+ * @ingroup geometry_solids_boolean
  */
 
 class G4ScaledSolid : public G4VSolid
@@ -57,9 +58,7 @@ class G4ScaledSolid : public G4VSolid
      *  @param[in] pSolid Pointer to the original reference solid.
      *  @param[in] pScale The scaling transformation.
      */
-    G4ScaledSolid( const G4String& pName,
-                         G4VSolid* pSolid ,
-                   const G4Scale3D& pScale  );
+    G4ScaledSolid(const G4String& pName, G4VSolid* pSolid, const G4Scale3D& pScale);
 
     /**
      * The destructor, clearing the cached transformation.
@@ -82,7 +81,7 @@ class G4ScaledSolid : public G4VSolid
     /**
      * Returns if the given point "p" is inside or not the solid.
      */
-    EInside Inside( const G4ThreeVector& p ) const override;
+    EInside Inside(const G4ThreeVector& p) const override;
 
     /**
      * Computes the bounding limits of the solid.
@@ -101,16 +100,15 @@ class G4ScaledSolid : public G4VSolid
      *  @param[out] pMax The maximum extent value.
      *  @returns True if the solid is intersected by the extent region.
      */
-    G4bool CalculateExtent(const EAxis pAxis,
-                           const G4VoxelLimits& pVoxelLimit,
-                           const G4AffineTransform& pTransform,
-                                 G4double& pMin, G4double& pMax) const override;
+    G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit,
+                           const G4AffineTransform& pTransform, G4double& pMin,
+                           G4double& pMax) const override;
 
     /**
      * Returns the outwards pointing unit normal of the shape for the
      * surface closest to the point at offset "p".
      */
-    G4ThreeVector SurfaceNormal( const G4ThreeVector& p ) const override;
+    G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const override;
 
     /**
      * Returns the distance along the normalised vector "v" to the shape,
@@ -119,14 +117,13 @@ class G4ScaledSolid : public G4VSolid
      * surface/volume is discarded. Hence, it is tolerant of points on
      * the surface of the shape.
      */
-    G4double DistanceToIn( const G4ThreeVector& p,
-                           const G4ThreeVector& v  ) const override;
+    G4double DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const override;
 
     /**
      * Calculates the safety distance to the nearest surface of a shape from
      * an outside point. The distance can be an underestimate.
      */
-    G4double DistanceToIn( const G4ThreeVector& p) const override;
+    G4double DistanceToIn(const G4ThreeVector& p) const override;
 
     /**
      * Returns the distance along the normalised vector "v" to the shape,
@@ -141,27 +138,18 @@ class G4ScaledSolid : public G4VSolid
      *              or on the exiting surface (calcNorm must be true, otherwise
      *              it is unused).
      *  @param[out] n The exiting outwards normal vector (undefined Magnitude).
-     *              (calcNorm must be true, otherwise it is unused). 
+     *              (calcNorm must be true, otherwise it is unused).
      *  @returns The distance value to exit the volume.
      */
-    G4double DistanceToOut( const G4ThreeVector& p,
-                            const G4ThreeVector& v,
-                            const G4bool calcNorm = false,
-                                  G4bool* validNorm = nullptr,
-                                  G4ThreeVector* n = nullptr ) const override;
+    G4double DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
+                           const G4bool calcNorm = false, G4bool* validNorm = nullptr,
+                           G4ThreeVector* n = nullptr) const override;
 
     /**
      * Calculates the safety distance to the nearest surface of a shape from
      * an inside point "p". The distance can be an underestimate.
      */
-    G4double DistanceToOut( const G4ThreeVector& p ) const override;
-
-    /**
-     * Throws an exception as paramterisations are not allowed for these solids.
-     */
-    void ComputeDimensions(       G4VPVParameterisation* p,
-                            const G4int n,
-                            const G4VPhysicalVolume* pRep ) override;
+    G4double DistanceToOut(const G4ThreeVector& p) const override;
 
     /**
      * Methods returning an estimation of the solid volume (capacity) and
@@ -190,8 +178,8 @@ class G4ScaledSolid : public G4VSolid
     /**
      * Accessor and setter for the scaling transformation.
      */
-    G4Scale3D GetScaleTransform() const; 
-    void SetScaleTransform(const G4Scale3D& scale); 
+    G4Scale3D GetScaleTransform() const;
+    void SetScaleTransform(const G4Scale3D& scale);
 
     /**
      * Returns a pointer to the original not scaled  solid.
@@ -201,7 +189,7 @@ class G4ScaledSolid : public G4VSolid
     /**
      * Returns the type ID, "G4ScaledSolid" of the solid.
      */
-    G4GeometryType  GetEntityType() const override;
+    G4GeometryType GetEntityType() const override;
 
     /**
      * Makes a clone of the object for use in multi-treading.
@@ -217,9 +205,9 @@ class G4ScaledSolid : public G4VSolid
     /**
      * Methods for creating graphical representations (i.e. for visualisation).
      */
-    void DescribeYourselfTo ( G4VGraphicsScene& scene ) const override;
-    G4Polyhedron* CreatePolyhedron () const override;
-    G4Polyhedron* GetPolyhedron    () const override;
+    void DescribeYourselfTo(G4VGraphicsScene& scene) const override;
+    G4Polyhedron* CreatePolyhedron() const override;
+    G4Polyhedron* GetPolyhedron() const override;
 
   private:
 

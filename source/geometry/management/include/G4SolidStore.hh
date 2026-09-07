@@ -45,20 +45,22 @@
 #ifndef G4VSOLIDSTORE_HH
 #define G4VSOLIDSTORE_HH
 
-#include <vector>
-#include <map>
-
 #include "G4VSolid.hh"
 #include "G4VStoreNotifier.hh"
+
+#include <map>
+#include <vector>
 
 /**
  * @brief G4LogicalVolumeStore is a singleton class, acting as container
  * for all solids primitives, with functionality derived from std::vector<T>.
+ * @ingroup geometry_management
+ *
  * All solids should be registered with G4SolidStore, and removed on their
  * destruction. The underlying container initially has a capacity of 100.
  * A map indexed by solid names is also recorded for fast search; pointers
  * to solids with same name are stored in buckets.
-*/
+ */
 
 class G4SolidStore : public std::vector<G4VSolid*>
 {
@@ -115,14 +117,13 @@ class G4SolidStore : public std::vector<G4VSolid*>
     /**
      * Accessor and modifier to assess validity of the internal map.
      */
-    inline G4bool IsMapValid() const  { return mvalid; }
-    inline void SetMapValid(G4bool val)  { mvalid = val; }
+    inline G4bool IsMapValid() const { return mvalid; }
+    inline void SetMapValid(G4bool val) { mvalid = val; }
 
     /**
      * Returns the internal map.
      */
-    inline const std::map<G4String,
-            std::vector<G4VSolid*> >& GetMap() const { return bmap; }
+    inline const std::map<G4String, std::vector<G4VSolid*>>& GetMap() const { return bmap; }
 
     /**
      * Brings contents of the internal map up to date and resets validity flag.
@@ -138,11 +139,13 @@ class G4SolidStore : public std::vector<G4VSolid*>
 
   private:
 
+    void CleanStore();
+
     static G4SolidStore* fgInstance;
     static G4ThreadLocal G4VStoreNotifier* fgNotifier;
     static G4ThreadLocal G4bool locked;
 
-    std::map<G4String, std::vector<G4VSolid*> > bmap;
+    std::map<G4String, std::vector<G4VSolid*>> bmap;
     G4bool mvalid = false;  // Flag to indicate if map is up to date or not
 };
 
